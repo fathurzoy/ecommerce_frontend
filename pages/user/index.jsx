@@ -21,6 +21,12 @@ const UserPage = () => {
   const [isModalShow, setIsModalShow] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [editedId, setEditedId] = useState(null);
+  const [userToken, setToken] = useState(null);
+
+  useEffect(() => {
+    const token = window.localStorage.getItem("tokentahu");
+    setToken(token);
+  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -52,7 +58,11 @@ const UserPage = () => {
 
   const getUsers = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/users");
+      const { data } = await axios.get("http://localhost:5000/users", {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
+      });
 
       setUsersData(data.users);
       console.log(data);
@@ -65,6 +75,9 @@ const UserPage = () => {
     try {
       const config = {
         "Content-type": "Application/json",
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
       };
       const response = await axios.post(
         "http://localhost:5000/users",
@@ -86,7 +99,11 @@ const UserPage = () => {
   const getUserById = async (id) => {
     try {
       setIsEdit(true);
-      const { data } = await axios.get(`http://localhost:5000/users/${id}`);
+      const { data } = await axios.get(`http://localhost:5000/users/${id}`, {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
+      });
 
       formik.setValues({
         fullName: data?.user?.fullName,
@@ -107,6 +124,9 @@ const UserPage = () => {
     try {
       const config = {
         "Content-type": "Application/json",
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
       };
 
       //update data diserver
@@ -143,13 +163,14 @@ const UserPage = () => {
   };
 
   useEffect(() => {
+    if (!userToken) return;
     getUsers();
-  }, []);
+  }, [userToken]);
 
   return (
     <>
       <Container maxW="container.xl" py={10}>
-        <Button size="md" colorSchema="facebook" onClick={showModal} mb={5}>
+        <Button size="md" onClick={showModal} mb={5}>
           Create User
         </Button>
         <Table variant="simple">
